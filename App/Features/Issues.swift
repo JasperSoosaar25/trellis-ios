@@ -45,19 +45,24 @@ struct IssueDetailView: View {
             else if issue.isNull { ProgressView("Loading conversation…") }
             else {
                 List {
-                    Section { ResourceRow(value: issue); MarkdownView(text: issue["body"].string) }
+                    Section { ResourceRow(value: issue); MarkdownView(text: issue["body"].string)
+                        if !issue["labels"].array.isEmpty { Text(issue["labels"].array.map { $0["name"].string }.joined(separator: " · ")).font(.caption).foregroundStyle(.secondary) }
+                        if !issue["assignees"].array.isEmpty { LabeledContent("Assignees", value: issue["assignees"].array.map { $0["login"].string }.joined(separator: ", ")) }
+                        if !issue["milestone"].isNull { LabeledContent("Milestone", value: issue.at("milestone.title").string) }
+                        DisclosureGroup("Reference") { LabeledContent("Node ID", value: issue["node_id"].string).font(.caption).textSelection(.enabled) }
+                    }
                     if let error { Text(error).foregroundStyle(.red) }
                     Section("Organize") {
                         Button("Edit title, description & metadata", systemImage: "pencil") { editor = .issue(repo, number: number, initial: issue) }
                         NavigationLink { ResourceList(title: "Labels", path: api + "/labels?per_page=100", webPath: "/\(repo)/labels", editor: EditorDefinition(title: "New label", path: api + "/labels", fields: [FieldDefinition(key: "name", label: "Name", required: true), FieldDefinition(key: "color", label: "Color (six hex digits)", required: true), FieldDefinition(key: "description", label: "Description")])) } label: { Label("Labels", systemImage: "tag") }
                         NavigationLink { ResourceList(title: "Milestones", path: api + "/milestones?state=all&per_page=100", webPath: "/\(repo)/milestones", editor: EditorDefinition(title: "New milestone", path: api + "/milestones", fields: [FieldDefinition(key: "title", label: "Title", required: true), FieldDefinition(key: "description", label: "Description", type: .multiline), FieldDefinition(key: "due_on", label: "Due date (ISO 8601)")])) } label: { Label("Milestones", systemImage: "flag") }
-                        if !pull { NavigationLink { ResourceList(title: "Sub-issues", path: api + "/issues/\(number)/sub_issues?per_page=100", kind: .issue(repo), webPath: "/\(repo)/issues/\(number)") } label: { Label("Sub-issues", systemImage: "list.bullet.indent") } }
+                        if !pull { NavigationLink { SubIssuesView(repo: repo, parent: number) } label: { Label("Sub-issues", systemImage: "list.bullet.indent") } }
                         reactionMenu
                     }
                     if pull { pullSection }
                     Section("Conversation") {
                         ForEach(comments) { comment in
-                            VStack(alignment: .leading, spacing: 8) { Text(comment.value.at("user.login").string).font(.headline); MarkdownView(text: comment.value["body"].string) }
+                            CommentView(comment: comment.value, root: api + "/issues/comments/\(comment.id)")
                         }
                         Button("Reply", systemImage: "bubble.left") { editor = EditorDefinition(title: "Add comment", path: api + "/issues/\(number)/comments", fields: [FieldDefinition(key: "body", label: "Comment (Markdown)", type: .multiline, required: true)]) }
                         NavigationLink { ResourceList(title: "All comments", path: api + "/issues/\(number)/comments?per_page=100", webPath: "/\(repo)/\(pull ? "pull" : "issues")/\(number)") } label: { Text("Browse all comments") }
@@ -91,6 +96,8 @@ struct IssueDetailView: View {
             NavigationLink { ResourceList(title: "Checks", path: api + "/commits/\(details.at("head.sha").string)/check-runs?per_page=100", key: "check_runs", webPath: "/\(repo)/pull/\(number)/checks") } label: { Label("Checks", systemImage: "checkmark.seal") }
             NavigationLink { ResourceList(title: "Reviews", path: api + "/pulls/\(number)/reviews?per_page=100", webPath: "/\(repo)/pull/\(number)") } label: { Label("Reviews", systemImage: "checkmark.bubble") }
             Button("Submit a review") { editor = EditorDefinition(title: "Review", path: api + "/pulls/\(number)/reviews", fields: [FieldDefinition(key: "event", label: "Decision", type: .choice(["COMMENT", "APPROVE", "REQUEST_CHANGES"])), FieldDefinition(key: "body", label: "Review (Markdown)", type: .multiline)], initial: .object(["commit_id": details.at("head.sha")])) }
+            Button("Request reviewers") { editor = EditorDefinition(title: "Request reviewers", path: api + "/pulls/\(number)/requested_reviewers", fields: [FieldDefinition(key: "reviewers", label: "Usernames", type: .csv), FieldDefinition(key: "team_reviewers", label: "Team slugs", type: .csv)]) }
+            NavigationLink { ResourceList(title: "Inline review comments", path: api + "/pulls/\(number)/comments?per_page=100", webPath: "/\(repo)/pull/\(number)/files") } label: { Text("Inline review conversation") }
             ActionMenu(title: "Merge pull request", actions: ["merge", "squash", "rebase"].map { method in APIAction(title: "Merge using \(method)", path: api + "/pulls/\(number)/merge", method: "PUT", body: .object(["merge_method": .string(method), "sha": details.at("head.sha")])) }, onSuccess: { Task { await load() } })
             Menu("Automatic merging") {
                 Button("Enable auto-merge (squash)") { mutate("enablePullRequestAutoMerge", input: "pullRequestId:$id,mergeMethod:SQUASH") }

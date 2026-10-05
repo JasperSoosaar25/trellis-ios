@@ -18,8 +18,8 @@ struct RepositoryView: View {
             Section { ResourceRow(value: repository); if !branches.isEmpty { Picker("Branch", selection: $branch) { ForEach(branches, id: \.self) { Text($0).tag($0) } } } }
             Section("Repository") {
                 NavigationLink { ResourceList(title: "Code", path: api + "/contents?" + URLCoding.query(["ref": branch]), kind: .file(repo, branch), webPath: "/\(repo)/tree/\(URLCoding.segment(branch))") } label: { Label("Code", systemImage: "chevron.left.forwardslash.chevron.right") }
-                NavigationLink { ResourceList(title: "Issues", path: api + "/issues?state=open&per_page=50", kind: .issue(repo), webPath: "/\(repo)/issues", editor: .issue(repo)) } label: { Label("Issues", systemImage: "circle.dotted") }
-                NavigationLink { ResourceList(title: "Pull requests", path: api + "/pulls?state=open&per_page=50", kind: .pull(repo), webPath: "/\(repo)/pulls", editor: .pull(repo, branch: branch)) } label: { Label("Pull requests", systemImage: "arrow.triangle.pull") }
+                NavigationLink { RepositoryIssuesView(repo: repo) } label: { Label("Issues", systemImage: "circle.dotted") }
+                NavigationLink { RepositoryIssuesView(repo: repo, pulls: true) } label: { Label("Pull requests", systemImage: "arrow.triangle.pull") }
                 NavigationLink { ActionsView(repo: repo) } label: { Label("Actions", systemImage: "play.circle") }
                 NavigationLink { ResourceList(title: "Commits", path: api + "/commits?" + URLCoding.query(["sha": branch, "per_page": "50"]), webPath: "/\(repo)/commits/\(URLCoding.segment(branch))") } label: { Label("Commit history", systemImage: "clock.arrow.circlepath") }
                 NavigationLink { CompareView(repo: repo, defaultBranch: branch) } label: { Label("Compare branches", systemImage: "arrow.triangle.branch") }

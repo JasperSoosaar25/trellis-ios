@@ -23,7 +23,7 @@ jobs:
     env:
       GH_CLIENT_ID: ${{ vars.GH_CLIENT_ID }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
       - name: Select Xcode
         run: |
           if [[ '${{ inputs.runner }}' == 'macos-26' ]]; then
@@ -37,7 +37,7 @@ jobs:
       - name: Test, screenshot, archive and verify
         run: bash scripts/build-ios.sh
       - name: Upload unsigned app
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: Trellis-unsigned
           path: |
@@ -48,7 +48,7 @@ jobs:
           if-no-files-found: error
       - name: Upload screenshots and diagnostics
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: Trellis-screenshots-and-tests
           path: |
@@ -64,8 +64,8 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/download-artifact@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
         with:
           name: Trellis-unsigned
           path: release

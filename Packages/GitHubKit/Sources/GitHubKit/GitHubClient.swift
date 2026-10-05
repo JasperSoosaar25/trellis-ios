@@ -131,7 +131,7 @@ public actor GitHubClient {
         cache[key] = entry; return entry
     }
     private func saveCache(_ entry: CacheEntry, key: String) {
-        if cache.count >= 60 { cache.removeAll() }
+        if cache.count >= 60 || cache.values.reduce(0, { $0 + $1.data.count }) + entry.data.count > 32 * 1024 * 1024 { cache.removeAll() }
         cache[key] = entry
         guard entry.data.count <= 2 * 1024 * 1024, let url = fileURL(key), let encoded = try? JSONEncoder().encode(entry) else { return }
         try? encoded.write(to: url, options: .atomic)

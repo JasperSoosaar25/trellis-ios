@@ -91,7 +91,7 @@ struct EditorView: View {
             }
             let body = try definition.transform?(.object(object)) ?? .object(object)
             var path = definition.path
-            for (key, value) in object { path = path.replacingOccurrences(of: "{\(key)}", with: URLCoding.segment(value.string)) }
+            for (key, value) in object { path = path.replacingOccurrences(of: "{\(key)}", with: key == "path" ? URLCoding.path(value.string) : URLCoding.segment(value.string)) }
             _ = try await session.request(path, method: definition.method, body: body)
             dismiss()
         } catch { self.error = error.localizedDescription }

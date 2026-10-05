@@ -15,6 +15,7 @@ import GitHubKit
     var unreadCount = 0
     var pollInterval: TimeInterval = 60
     var contributions: JSON = .null
+    var contributionError: String?
 
     init() {
         if ProcessInfo.processInfo.arguments.contains("--demo") {
@@ -72,8 +73,8 @@ import GitHubKit
         guard !isDemo else { return }
         do {
             let data = try await graphql("query { viewer { contributionsCollection { contributionCalendar { totalContributions weeks { contributionDays { date contributionCount color } } } } } rateLimit { cost remaining resetAt } }")
-            contributions = data.at("viewer.contributionsCollection.contributionCalendar")
-        } catch { /* Profile remains usable; the contribution view exposes retry. */ }
+            contributions = data.at("viewer.contributionsCollection.contributionCalendar"); contributionError = nil
+        } catch { contributionError = error.localizedDescription }
     }
 }
 

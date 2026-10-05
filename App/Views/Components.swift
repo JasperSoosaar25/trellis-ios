@@ -57,7 +57,10 @@ struct ContributionView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("\(session.contributions["totalContributions"].int) contributions").font(.headline)
-            if session.contributions.isNull { Button("Load contribution activity") { Task { await session.loadContributions() } } }
+            if session.contributions.isNull {
+                if let error = session.contributionError { Text(error).font(.caption).foregroundStyle(.secondary) }
+                Button("Load contribution activity") { Task { await session.loadContributions() } }
+            }
             else {
                 ScrollView(.horizontal) {
                     HStack(spacing: 3) {
