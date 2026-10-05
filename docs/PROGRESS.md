@@ -35,3 +35,10 @@ for aa86333: 14 macOS package tests, 3 app unit tests, 2 UI tests, simulator scr
 Release archive and IPA verification passed. Bundle dev.trellis.client, minimum
 iOS 26.0, families 1/2, arm64, no provisioning profile or extension; 5.74 MiB IPA.
 Final changes still require their own green run before tagging. No Release published yet.
+
+Final resource audit: 17 Windows package tests pass, including loading 40 persisted
+pages without exceeding the 32 MiB memory budget. Cache restores now share eviction
+rules with writes. Apple API responses stop at 16 MiB while reading into memory;
+OAuth response tokens never go through a temporary download file. Large Actions logs
+stream to disk and read only a 2 MiB tail. An empty notification baseline correctly
+allows the first later notification, and recent IDs take priority in the bound.

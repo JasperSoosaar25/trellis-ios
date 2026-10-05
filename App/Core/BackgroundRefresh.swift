@@ -35,20 +35,22 @@ import GitHubKit
             let response = try await client.request("/notifications?per_page=50", useCache: false)
             try Task.checkCancellation()
             let ids = response.json.array.map { $0["id"].string }
-            let prior = Set(UserDefaults.standard.stringArray(forKey: "seenNotifications") ?? [])
+            let baseline = UserDefaults.standard.stringArray(forKey: "seenNotifications")
+            let prior = Set(baseline ?? [])
             let newCount = ids.filter { !prior.contains($0) }.count
             let interval = await client.pollInterval
             UserDefaults.standard.set(interval, forKey: "pollInterval")
             UserDefaults.standard.set(Date().addingTimeInterval(interval).timeIntervalSince1970, forKey: "nextNotificationPoll")
             // The first snapshot establishes a baseline, avoiding a flood on opt-in.
-            if !prior.isEmpty && newCount > 0 {
+            if baseline != nil && newCount > 0 {
                 let content = UNMutableNotificationContent()
                 content.title = "New activity"
                 content.body = "You have \(newCount) new notification\(newCount == 1 ? "" : "s") in Trellis."
                 content.sound = .default
                 try await UNUserNotificationCenter.current().add(UNNotificationRequest(identifier: "trellis-inbox", content: content, trigger: nil))
             }
-            UserDefaults.standard.set(Array(Set(ids).union(prior)).sorted().suffix(500).map { $0 }, forKey: "seenNotifications")
+            let recent = ids + (baseline ?? []).filter { !ids.contains($0) }
+            UserDefaults.standard.set(Array(recent.prefix(500)), forKey: "seenNotifications")
             task.setTaskCompleted(success: true)
         } catch { task.setTaskCompleted(success: false) }
     }

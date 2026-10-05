@@ -19,7 +19,19 @@ public struct HTTPTransport: Sendable {
     public static let live = HTTPTransport { request in
         let session = URLSession(configuration: .ephemeral, delegate: SecureRedirects(), delegateQueue: nil)
         defer { session.finishTasksAndInvalidate() }
+        #if canImport(Darwin)
+        let (bytes, response) = try await session.bytes(for: request)
+        guard response.expectedContentLength <= 16 * 1024 * 1024 else { throw GitHubError.oversized }
+        var data = Data()
+        data.reserveCapacity(Int(max(0, min(response.expectedContentLength, 16 * 1024 * 1024))))
+        for try await byte in bytes {
+            guard data.count < 16 * 1024 * 1024 else { throw GitHubError.oversized }
+            data.append(byte)
+        }
+        #else
         let (data, response) = try await session.data(for: request)
+        guard data.count <= 16 * 1024 * 1024 else { throw GitHubError.oversized }
+        #endif
         guard let http = response as? HTTPURLResponse else { throw GitHubError.malformedResponse }
         var headers: [String: String] = [:]
         for (key, value) in http.allHeaderFields { headers[String(describing: key)] = String(describing: value) }

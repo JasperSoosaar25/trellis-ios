@@ -10,6 +10,25 @@ final class DownloadRedirectDelegate: NSObject, URLSessionTaskDelegate, @uncheck
     }
 }
 
+enum APIFileDownload {
+    static func fetch(_ path: String) async throws -> URL {
+        guard let token = Keychain.read() else { throw GitHubError.unauthorized }
+        guard let url = URL(string: "https://api.github.com" + path), url.host == "api.github.com", url.user == nil, url.password == nil else { throw GitHubError.invalidURL }
+        var request = URLRequest(url: url); request.timeoutInterval = 60
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
+        request.setValue("2026-03-10", forHTTPHeaderField: "X-GitHub-Api-Version")
+        let downloader = URLSession(configuration: .ephemeral, delegate: DownloadRedirectDelegate(), delegateQueue: nil)
+        defer { downloader.finishTasksAndInvalidate() }
+        let (temporary, response) = try await downloader.download(for: request)
+        guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
+            try? FileManager.default.removeItem(at: temporary)
+            throw GitHubError.http((response as? HTTPURLResponse)?.statusCode ?? 0, "Download unavailable. Check permissions, rate limits, and whether logs are ready.")
+        }
+        return temporary
+    }
+}
+
 struct ArtifactList: View {
     let repo: String
     var runID: String? = nil

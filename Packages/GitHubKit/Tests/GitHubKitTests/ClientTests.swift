@@ -79,6 +79,28 @@ func response(_ source: String, status: Int = 200, headers: [String: String] = [
     catch GitHubError.rateLimited(let until) { #expect(until.timeIntervalSinceNow > 10) }
 }
 
+@Test func loadingPersistedPagesCannotExceedTheMemoryBudget() async throws {
+    let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+    defer { try? FileManager.default.removeItem(at: directory) }
+    try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+    let body = Data(repeating: 65, count: 1024 * 1024)
+    // Simulate cached pages left by an earlier app session. Disk pruning happens
+    // on writes; the read path must independently enforce its own memory bound.
+    for index in 0..<40 {
+        let key = "https://api.github.com/pages/\(index)|application/vnd.github+json"
+        var hash: UInt64 = 14695981039346656037
+        for byte in key.utf8 { hash = (hash ^ UInt64(byte)) &* 1099511628211 }
+        let entry: [String: Any] = ["data": body.base64EncodedString(), "headers": [:], "saved": Date().timeIntervalSinceReferenceDate]
+        try JSONSerialization.data(withJSONObject: entry).write(to: directory.appendingPathComponent(String(hash, radix: 16) + ".json"))
+    }
+    let stub = Stub([]); await stub.setOffline()
+    let reader = GitHubClient(token: "test-value", transport: await stub.transport, cacheDirectory: directory)
+    for index in 0..<40 {
+        #expect(try await reader.request("/pages/\(index)").isOffline)
+        #expect(await reader.cachedByteCount <= 32 * 1024 * 1024)
+    }
+}
+
 @Test func graphQLReportsErrorsEvenWithHTTP200() async throws {
     let stub = Stub([response("{\"errors\":[{\"message\":\"No access\"}],\"data\":null}")])
     let client = GitHubClient(token: "test-value", transport: await stub.transport)

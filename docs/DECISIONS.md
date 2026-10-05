@@ -45,3 +45,8 @@
 - Sponsors exposes native paged sponsorship records. Payment changes stay in browser.
 - IPA verification also checks embedded Mach-O signature slots for entitlements;
   a linker-generated ad-hoc signature is compatible with subsequent re-signing.
+- Enforce the cache budget on both disk restores and new writes. Apple API response
+  buffers stop at 16 MiB; token responses stay in memory. Large log snapshots download
+  to temporary disk and only their final 2 MiB enter the native log viewer.
+- Notification baseline presence is independent of unread count. Keep recently seen
+  IDs first when limiting storage, rather than retaining IDs by lexical order.

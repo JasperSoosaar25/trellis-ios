@@ -21,6 +21,7 @@ public actor GitHubClient {
     private let transport: HTTPTransport
     private let cacheDirectory: URL?
     private var cache: [String: CacheEntry] = [:]
+    var cachedByteCount: Int { cache.values.reduce(0) { $0 + $1.data.count } }
     public private(set) var rateLimit = RateLimit()
     public private(set) var scopes: Set<String>?
     public private(set) var pollInterval: TimeInterval = 60
@@ -128,11 +129,14 @@ public actor GitHubClient {
     private func readCache(_ key: String) -> CacheEntry? {
         if let entry = cache[key] { return entry }
         guard let url = fileURL(key), let data = try? Data(contentsOf: url), let entry = try? JSONDecoder().decode(CacheEntry.self, from: data), Date().timeIntervalSince(entry.saved) < 7 * 86400 else { return nil }
-        cache[key] = entry; return entry
+        remember(entry, key: key); return entry
+    }
+    private func remember(_ entry: CacheEntry, key: String) {
+        if cache.count >= 60 || cachedByteCount - (cache[key]?.data.count ?? 0) + entry.data.count > 32 * 1024 * 1024 { cache.removeAll() }
+        cache[key] = entry
     }
     private func saveCache(_ entry: CacheEntry, key: String) {
-        if cache.count >= 60 || cache.values.reduce(0, { $0 + $1.data.count }) + entry.data.count > 32 * 1024 * 1024 { cache.removeAll() }
-        cache[key] = entry
+        remember(entry, key: key)
         guard entry.data.count <= 2 * 1024 * 1024, let url = fileURL(key), let encoded = try? JSONEncoder().encode(entry) else { return }
         try? encoded.write(to: url, options: .atomic)
         if let directory = cacheDirectory, let files = try? FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: [.contentModificationDateKey, .fileSizeKey]) {

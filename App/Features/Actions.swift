@@ -14,7 +14,7 @@ struct ActionsView: View {
             NavigationLink { AdminResourceView(spec: .caches(repo)) } label: { Label("Caches", systemImage: "externaldrive") }
             NavigationLink { ArtifactList(repo: repo) } label: { Label("Artifacts", systemImage: "archivebox") }
             NavigationLink { FileView(repo: repo, branch: "HEAD", item: .object(["type": .string("dir"), "name": .string("Workflows"), "path": .string(".github/workflows")])) } label: { Label("Edit workflow files", systemImage: "doc.badge.gearshape") }
-            NavigationLink { BillingUsageView(account: String(repo.split(separator: "/").first ?? ""), organization: true) } label: { Label("Organization usage & billing", systemImage: "chart.bar") }
+            NavigationLink { BillingUsageView(account: String(repo.split(separator: "/").first ?? ""), organization: String(repo.split(separator: "/").first ?? "") != session.login) } label: { Label("Usage & billing", systemImage: "chart.bar") }
         }.navigationTitle("Actions")
     }
 }
@@ -101,8 +101,14 @@ struct LogView: View {
     private func load() async {
         guard !loading else { return }; loading = true; defer { loading = false }
         do {
-            let response = try await session.request("/repos/\(repo)/actions/jobs/\(job["id"].string)/logs", accept: "application/vnd.github+json", cache: false)
-            source = String(decoding: response.data.suffix(2 * 1024 * 1024), as: UTF8.self); error = nil
+            if session.isDemo { source = "Demo logs are unavailable. Sign in to read actual job logs."; error = nil; return }
+            let file = try await APIFileDownload.fetch("/repos/\(repo)/actions/jobs/\(job["id"].string)/logs")
+            defer { try? FileManager.default.removeItem(at: file) }
+            let handle = try FileHandle(forReadingFrom: file); defer { try? handle.close() }
+            let length = try handle.seekToEnd()
+            try handle.seek(toOffset: length > 2 * 1024 * 1024 ? length - 2 * 1024 * 1024 : 0)
+            let tail = try handle.read(upToCount: 2 * 1024 * 1024) ?? Data()
+            source = String(decoding: tail, as: UTF8.self); error = nil
         } catch { self.error = error.localizedDescription }
     }
 }
