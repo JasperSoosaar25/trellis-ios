@@ -13,7 +13,11 @@ xcrun simctl boot "$DEVICE"
 xcrun simctl bootstatus "$DEVICE" -b
 xcrun simctl status_bar "$DEVICE" override --time '9:41' --dataNetwork wifi --wifiMode active --wifiBars 3 --batteryState charged --batteryLevel 100
 BUILD_SETTINGS=(CODE_SIGN_IDENTITY= CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO "GH_CLIENT_ID=${GH_CLIENT_ID:-}" "CURRENT_PROJECT_VERSION=${GITHUB_RUN_NUMBER:-1}")
-xcodebuild test -project Trellis.xcodeproj -scheme Trellis -configuration Debug -destination "platform=iOS Simulator,id=$DEVICE" -derivedDataPath build/DerivedData -resultBundlePath build/Tests.xcresult "${BUILD_SETTINGS[@]}" > build/test.log 2>&1 || { tail -n 100 build/test.log; exit 1; }
+if ! xcodebuild test -project Trellis.xcodeproj -scheme Trellis -configuration Debug -destination "platform=iOS Simulator,id=$DEVICE" -derivedDataPath build/DerivedData -resultBundlePath build/Tests.xcresult "${BUILD_SETTINGS[@]}" > build/test.log 2>&1; then
+  xcrun xcresulttool export attachments --path build/Tests.xcresult --output-path build/screenshots || true
+  tail -n 100 build/test.log
+  exit 1
+fi
 xcrun xcresulttool export attachments --path build/Tests.xcresult --output-path build/screenshots
 # Include a dark appearance capture independently of UI-test attachments.
 xcrun simctl ui "$DEVICE" appearance dark

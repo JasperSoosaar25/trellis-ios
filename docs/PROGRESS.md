@@ -13,8 +13,8 @@
 - First simulator/archive run failed on a demo JSON raw-string delimiter; corrected.
 - Swift syntax parsing passes on Windows (no iOS compilation attempted).
 - Initial implementation passed full integration on Xcode 27 / iOS 27 simulator.
-- Current: beta integration verified; validate final confirmation/demo regressions
-  and publish through the gated tag workflow. Current main status is available in
+- Current: M1–M7 initial beta, with the documented coverage limits below.
+  Distribution uses the gated tag workflow. Current main status is available in
   [Actions](https://github.com/JasperSoosaar25/trellis-ios/actions/workflows/build-ios.yml?query=branch%3Amain).
 - Follow-up run: [37353819991](https://github.com/JasperSoosaar25/trellis-ios/actions/runs/37353819991), conclusion **success** (queried with gh run view).
 - Added README, row-by-row actual coverage, release notes and bundled license notices.
@@ -56,3 +56,11 @@ file and comparison browser routes are reachable from their toolbars. Windows te
 passed all 17 again at 21:45 local. Coverage: 27 native, 42 partial, 5 browser, 3
 excluded rows. See FEATURES.md for precise beta gaps, and NEEDS_FROM_USER.md for
 installation, authentication and actual-device verification.
+
+Confirmation regression: [37361465225](https://github.com/JasperSoosaar25/trellis-ios/actions/runs/37361465225)
+for a9ff761 concluded **failure**. All 17 package tests and 4 app unit tests passed;
+three UI tests passed. The fourth opened the deletion confirmation successfully,
+then failed because the system popover did not expose a Cancel button. The test now
+uses Cancel when present or dismisses outside the popover, and verifies both its
+disappearance and the unchanged comment. Failure screenshots are exported before
+the build script exits. This check remains enabled in main and tagged release CI.

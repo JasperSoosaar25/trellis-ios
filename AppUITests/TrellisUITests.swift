@@ -45,10 +45,18 @@ import XCTest
         for _ in 0..<5 { if menu.exists && menu.isHittable { break }; app.swipeUp() }
         XCTAssertTrue(menu.exists); menu.tap()
         app.buttons["Delete comment"].tap()
-        XCTAssertTrue(app.buttons["Delete your comment"].waitForExistence(timeout: 5))
+        let confirmation = app.buttons["Delete your comment"]
+        XCTAssertTrue(confirmation.waitForExistence(timeout: 5))
         capture("11-comment-confirmation")
-        app.buttons["Cancel"].tap()
-        XCTAssertTrue(app.staticTexts["Thanks for checking. The next update improves readability."].exists)
+        let cancel = app.buttons["Cancel"]
+        if cancel.exists {
+            cancel.tap()
+        } else {
+            // The system popover omits Cancel; tapping outside dismisses it.
+            app.navigationBars["Issue #24"].coordinate(withNormalizedOffset: .init(dx: 0.5, dy: 0.5)).tap()
+        }
+        XCTAssertTrue(confirmation.waitForNonExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["Thanks for checking. The next update improves readability."].waitForExistence(timeout: 5))
     }
     func testDarkAndAccessibleTextScreens() {
         let app = XCUIApplication(); app.launchArguments = ["--demo", "--dark"]; app.launch()
