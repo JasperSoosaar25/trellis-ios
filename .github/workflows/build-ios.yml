@@ -1,0 +1,75 @@
+name: Build iOS
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      runner:
+        description: 'Primary Xcode 27 or fallback Xcode 26'
+        type: choice
+        options: [xcode-27, macos-26]
+        default: xcode-27
+permissions:
+  contents: read
+concurrency:
+  group: ios-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  build:
+    runs-on: ${{ inputs.runner || 'xcode-27' }}
+    timeout-minutes: 60
+    env:
+      GH_CLIENT_ID: ${{ vars.GH_CLIENT_ID }}
+    steps:
+      - uses: actions/checkout@v5
+      - name: Select Xcode
+        run: |
+          if [[ '${{ inputs.runner }}' == 'macos-26' ]]; then
+            sudo xcode-select -s /Applications/Xcode_26.6.app/Contents/Developer
+          else
+            sudo xcode-select -s /Applications/Xcode_27.0.app/Contents/Developer
+          fi
+          xcodebuild -version
+      - name: Install project generator
+        run: brew install xcodegen
+      - name: Test, screenshot, archive and verify
+        run: bash scripts/build-ios.sh
+      - name: Upload unsigned app
+        uses: actions/upload-artifact@v4
+        with:
+          name: Trellis-unsigned
+          path: |
+            build/Trellis.ipa
+            build/Trellis.ipa.sha256
+            build/Trellis.verification.json
+            build/ipa-contents.txt
+          if-no-files-found: error
+      - name: Upload screenshots and diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Trellis-screenshots-and-tests
+          path: |
+            build/screenshots/
+            build/Tests.xcresult/
+            build/test.log
+            build/archive.log
+          if-no-files-found: warn
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/download-artifact@v5
+        with:
+          name: Trellis-unsigned
+          path: release
+      - name: Publish verified unsigned IPA
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" release/Trellis.ipa release/Trellis.ipa.sha256 release/Trellis.verification.json --title "Trellis $GITHUB_REF_NAME" --notes-file docs/RELEASE_NOTES.md --verify-tag
