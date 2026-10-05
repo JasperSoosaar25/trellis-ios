@@ -64,3 +64,29 @@ then failed because the system popover did not expose a Cancel button. The test 
 uses Cancel when present or dismisses outside the popover, and verifies both its
 disappearance and the unchanged comment. Failure screenshots are exported before
 the build script exits. This check remains enabled in main and tagged release CI.
+
+## Final code validation and distribution handoff
+
+[37364416747](https://github.com/JasperSoosaar25/trellis-ios/actions/runs/37364416747)
+for 9c8f24f concluded **success** at 19:55 UTC. The conclusion was independently
+queried through the GitHub connection after local CLI access became unavailable.
+All 17 macOS package tests passed; simulator app/UI tests, screenshot export,
+Release archive and IPA verification succeeded with the confirmation check enabled.
+The earlier 17 Windows tests cover the same unchanged package sources.
+
+Verified IPA: dev.trellis.client, minimum iOS 26.0, device families 1/2, arm64,
+49 ZIP entries, no provisioning profile, extension or embedded signing entitlement.
+SHA-256: `08170a0cd12e2de5fd57bb7211f74242978b2f72dd4bd87d87521df19c68b9f8`.
+Artifacts: Trellis-unsigned (11368117719) and Trellis-screenshots-and-tests
+(11368177941). Earlier downloaded screenshots and IPA were inspected and checked
+on Windows as recorded above; the final artifacts could not be downloaded in the
+resumed restricted session.
+
+**Distribution remains pending.** A repository Releases query returned no releases.
+The resumed session's network cannot connect to github.com:443, so it cannot push
+the release tag. The Windows setup helper initially returned error 1223 after its
+popup was closed; local commands later recovered, but network access remains blocked.
+The GitHub connection can read CI results but has no tag/release publishing tool.
+RUN_ON_MY_PC.md contains the exact commands to push this documentation and v1.0.0
+from normal PowerShell. The existing tag workflow tests and verifies its own IPA
+before publishing. No signing secrets or user credentials are required.

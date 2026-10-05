@@ -1,7 +1,7 @@
 # Trellis
 
 Read docs/PLAN.md and docs/PROGRESS.md before work and after compaction.
-Current milestone: M1–M7 initial beta; CI evidence in PROGRESS.md, distribution via gated tag builds.
+Current milestone: M1–M7 beta code verified (9c8f24f); release tag push blocked. See RUN_ON_MY_PC.md and PROGRESS.md.
 Pure package: `swift test --package-path Packages/GitHubKit` (Windows/macOS).
 iOS builds run only on macOS: `xcodegen generate`, then `scripts/build-ios.sh`.
 Use Swift 6, strict concurrency, system SwiftUI controls, no signing secrets.

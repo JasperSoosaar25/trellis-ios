@@ -2,6 +2,10 @@
 
 The app builds without an OAuth client ID and supports a pasted personal access token.
 
+Distribution is currently blocked by the resumed session's restricted network.
+Run [the PowerShell handoff](RUN_ON_MY_PC.md) to push the documentation and release
+tag; the tagged CI build will publish the IPA only after all checks succeed.
+
 1. Download the published IPA to Files, import into KravaSign, sign, and install.
    Check that it opens on your iPhone 13; CI cannot verify your signing certificate.
 2. Paste a PAT with the permissions you want. Organization access may additionally
