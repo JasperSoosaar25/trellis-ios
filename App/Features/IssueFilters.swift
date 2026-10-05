@@ -39,12 +39,19 @@ struct CommentView: View {
     @Environment(Session.self) private var session
     @State private var editor: EditorDefinition?
     @State private var message: String?
+    @State private var confirmDelete = false
+    @State private var deleting = false
+    @State private var deleted = false
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack { Text(comment.at("user.login").string).font(.headline); Spacer(); menu }
-            MarkdownView(text: comment["body"].string)
+            if !deleted { MarkdownView(text: comment["body"].string) }
             if let message { Text(message).font(.caption).foregroundStyle(.secondary) }
         }.sheet(item: $editor) { EditorView(definition: $0) }
+            .confirmationDialog("Delete your comment?", isPresented: $confirmDelete, titleVisibility: .visible) {
+                Button("Delete your comment", role: .destructive) { Task { await deleteComment() } }
+                Button("Cancel", role: .cancel) {}
+            } message: { Text("This permanently removes the selected comment from GitHub.") }
     }
     private var menu: some View {
         Menu {
@@ -55,10 +62,14 @@ struct CommentView: View {
             }
             if comment.at("user.login").string == session.login {
                 Button("Edit comment") { editor = EditorDefinition(title: "Edit comment", path: root, method: "PATCH", fields: [FieldDefinition(key: "body", label: "Comment (Markdown)", type: .multiline, required: true)], initial: .object(["body": comment["body"]])) }
-                // This nested ActionMenu retains its own concrete confirmation.
-                ActionMenu(title: "Delete comment", actions: [APIAction(title: "Delete your comment", path: root, method: "DELETE", destructive: true)], onSuccess: { message = "Comment deleted. Refresh to update the conversation." })
+                Button("Delete comment", role: .destructive) { confirmDelete = true }
             }
-        } label: { Image(systemName: "ellipsis").accessibilityLabel("Comment actions") }
+        } label: { Image(systemName: "ellipsis").accessibilityLabel("Comment actions") }.disabled(deleting || deleted)
+    }
+    private func deleteComment() async {
+        deleting = true; defer { deleting = false }
+        do { _ = try await session.request(root, method: "DELETE"); deleted = true; message = "Comment deleted." }
+        catch { message = error.localizedDescription }
     }
 }
 

@@ -1,5 +1,7 @@
 # Trellis
 
+[![Build iOS](https://github.com/JasperSoosaar25/trellis-ios/actions/workflows/build-ios.yml/badge.svg?branch=main)](https://github.com/JasperSoosaar25/trellis-ios/actions/workflows/build-ios.yml?query=branch%3Amain)
+
 An unofficial native iOS client for GitHub, built with SwiftUI and system Liquid
 Glass controls. Requires iOS 26 or later. The original branching icon and app name
 do not use GitHub trademarks. Trellis is not affiliated with or endorsed by GitHub.
@@ -8,6 +10,7 @@ This is an initial public beta: native API coverage is broad, and advanced setti
 also have an embedded browser fallback. Consult [the detailed feature matrix](docs/FEATURES.md)
 for implementation limits. A successful build verifies compilation, deterministic
 tests and IPA structure; it does not verify your permissions or sideloader certificate.
+The matrix has **27 native, 42 partial, 5 browser and 3 excluded** feature rows.
 
 | Area | What is included |
 | --- | --- |

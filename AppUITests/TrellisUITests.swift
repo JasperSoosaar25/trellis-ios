@@ -30,6 +30,26 @@ import XCTest
         XCTAssertTrue(app.textFields["OAuth client ID"].exists)
         capture("00-login")
     }
+    func testCommentDeletionRequiresConfirmation() {
+        let app = XCUIApplication(); app.launchArguments = ["--demo"]; app.launch()
+        XCTAssertTrue(app.navigationBars["Home"].waitForExistence(timeout: 15))
+        app.tabBars.buttons["Repositories"].tap()
+        let repository = app.staticTexts["river-demo/garden-notes"]
+        XCTAssertTrue(repository.waitForExistence(timeout: 10)); repository.tap()
+        app.staticTexts["Issues"].tap()
+        let issue = app.staticTexts["Improve accessibility in the file browser"]
+        XCTAssertTrue(issue.waitForExistence(timeout: 10)); issue.tap()
+        XCTAssertTrue(app.navigationBars["Issue #24"].waitForExistence(timeout: 10))
+        capture("10-issue-markdown")
+        let menu = app.buttons["Comment actions"].firstMatch
+        for _ in 0..<5 { if menu.exists && menu.isHittable { break }; app.swipeUp() }
+        XCTAssertTrue(menu.exists); menu.tap()
+        app.buttons["Delete comment"].tap()
+        XCTAssertTrue(app.buttons["Delete your comment"].waitForExistence(timeout: 5))
+        capture("11-comment-confirmation")
+        app.buttons["Cancel"].tap()
+        XCTAssertTrue(app.staticTexts["Thanks for checking. The next update improves readability."].exists)
+    }
     func testDarkAndAccessibleTextScreens() {
         let app = XCUIApplication(); app.launchArguments = ["--demo", "--dark"]; app.launch()
         XCTAssertTrue(app.navigationBars["Home"].waitForExistence(timeout: 15)); capture("08-dark-home")

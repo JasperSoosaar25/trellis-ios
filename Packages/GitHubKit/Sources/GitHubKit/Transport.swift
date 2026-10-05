@@ -18,7 +18,7 @@ public struct HTTPTransport: Sendable {
     public init(send: @escaping @Sendable (URLRequest) async throws -> HTTPResponse) { self.send = send }
     public static let live = HTTPTransport { request in
         let session = URLSession(configuration: .ephemeral, delegate: SecureRedirects(), delegateQueue: nil)
-        defer { session.finishTasksAndInvalidate() }
+        defer { session.invalidateAndCancel() }
         #if canImport(Darwin)
         let (bytes, response) = try await session.bytes(for: request)
         guard response.expectedContentLength <= 16 * 1024 * 1024 else { throw GitHubError.oversized }

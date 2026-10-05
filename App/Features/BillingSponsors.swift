@@ -54,7 +54,7 @@ struct SponsorsView: View {
                     LabeledContent("Status", value: sponsorship.value["isActive"].bool ? "Active" : "Inactive")
                     LabeledContent("Payment", value: sponsorship.value["isOneTimePayment"].bool ? "One time" : "Recurring")
                     LabeledContent("Tier", value: sponsorship.value.at("tier.name").string)
-                    LabeledContent("Monthly USD", value: sponsorship.value.at("tier.monthlyPriceInDollars").string)
+                    LabeledContent(sponsorship.value["isOneTimePayment"].bool ? "Amount (USD)" : "Monthly USD", value: sponsorship.value.at("tier.monthlyPriceInDollars").string)
                     Button("Manage sponsorship") { session.browse("/sponsors/\(sponsorship.value.at("sponsorable.login").string)") }
                 }
             }

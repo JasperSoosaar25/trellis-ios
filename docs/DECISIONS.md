@@ -50,3 +50,9 @@
   to temporary disk and only their final 2 MiB enter the native log viewer.
 - Notification baseline presence is independent of unread count. Keep recently seen
   IDs first when limiting storage, rather than retaining IDs by lexical order.
+- Present comment deletion confirmation from the comment row rather than from a
+  nested menu. A fixture UI test opens it and cancels without making a server write.
+- Demo mode rejects REST and GraphQL mutations explicitly; it cannot report fake
+  successful account changes. Tests cover both paths.
+- Repository creation, file errors and comparisons have direct matching browser
+  toolbar routes, keeping advanced/unsupported cases reachable.

@@ -1,7 +1,7 @@
 # Trellis
 
 Read docs/PLAN.md and docs/PROGRESS.md before work and after compaction.
-Current milestone: M1–M7 implementation present; integration validation in CI.
+Current milestone: M1–M7 beta integration verified; final regressions and release validation.
 Pure package: `swift test --package-path Packages/GitHubKit` (Windows/macOS).
 iOS builds run only on macOS: `xcodegen generate`, then `scripts/build-ios.sh`.
 Use Swift 6, strict concurrency, system SwiftUI controls, no signing secrets.

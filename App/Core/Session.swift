@@ -18,10 +18,10 @@ import GitHubKit
     var contributionError: String?
     var showingOfflineData = false
 
-    init() {
+    init(restoreStoredSession: Bool = true) {
         if ProcessInfo.processInfo.arguments.contains("--demo") {
             isDemo = true; profile = Demo.profile; contributions = Demo.contributions
-        } else if let token = Keychain.read() {
+        } else if restoreStoredSession, let token = Keychain.read() {
             client = GitHubClient(token: token); restoring = true
             Task { await restore(token) }
         }
@@ -68,7 +68,10 @@ import GitHubKit
         return response
     }
     func graphql(_ query: String, variables: JSON = .object([:])) async throws -> JSON {
-        if isDemo { return .object([:]) }
+        if isDemo {
+            guard !query.trimmingCharacters(in: .whitespacesAndNewlines).hasPrefix("mutation") else { throw GitHubError.http(403, "Demo mode is read-only. Sign in to make changes.") }
+            return .object([:])
+        }
         guard let client else { throw GitHubError.unauthorized }
         return try await client.graphql(query, variables: variables)
     }

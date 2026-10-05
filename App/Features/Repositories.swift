@@ -87,6 +87,7 @@ struct FileView: View {
                 }
             }
         }.navigationTitle(item["name"].string).navigationBarTitleDisplayMode(.inline).task { if item["type"].string != "dir" { await load() } }
+            .toolbar { if item["type"].string != "dir" { Button("Open file on GitHub", systemImage: "safari") { session.browse("/\(repo)/blob/\(URLCoding.segment(branch))/\(URLCoding.path(item["path"].string))") } } }
             .sheet(item: $editor, onDismiss: { Task { await load() } }) { EditorView(definition: $0) }
     }
     private var language: String {
@@ -162,6 +163,7 @@ struct CompareView: View {
             if let error { Text(error).foregroundStyle(.red) }
             if !comparison.isNull { LabeledContent("Status", value: comparison["status"].string); LabeledContent("Ahead", value: comparison["ahead_by"].string); ForEach(comparison["files"].array.map { ResourceItem($0) }) { file in NavigationLink(file.value["filename"].string) { DiffView(patch: file.value["patch"].string) } } }
         }.navigationTitle("Compare").onAppear { if base.isEmpty { base = defaultBranch } }
+            .toolbar { Button("Open compare on GitHub", systemImage: "safari") { session.browse(head.isEmpty ? "/\(repo)/compare" : "/\(repo)/compare/\(URLCoding.segment(base))...\(URLCoding.segment(head))") } }
     }
 }
 
@@ -209,6 +211,7 @@ struct CreateRepositoryView: View {
             if !created.isNull { NavigationLink("Open created repository") { RepositoryView(repository: created) } }
             Button(busy ? "Creating…" : "Create repository") { Task { await create() } }.disabled(name.isEmpty || owner.isEmpty || busy || !created.isNull)
         }.navigationTitle("New repository")
+            .toolbar { Button("Open New Repository on GitHub", systemImage: "safari") { session.browse("/new") } }
             .task {
                 owner = session.login; owners = [session.login]
                 do { owners += try await session.request("/user/orgs?per_page=100").json.array.map { $0["login"].string }; ignores = try await session.request("/gitignore/templates").json.array.map(\.string); licenses = try await session.request("/licenses").json.array.map { ResourceItem($0) } }

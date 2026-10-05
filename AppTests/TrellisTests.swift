@@ -4,6 +4,15 @@ import Sodium
 @testable import Trellis
 
 @MainActor final class TrellisTests: XCTestCase {
+    func testDemoRejectsBothRESTAndGraphQLWrites() async throws {
+        let session = Session(restoreStoredSession: false); session.isDemo = true
+        do { _ = try await session.request("/user/repos", method: "POST"); XCTFail("Demo must not report a successful write") }
+        catch GitHubError.http(let status, _) { XCTAssertEqual(status, 403) }
+        do { _ = try await session.graphql("  mutation { deleteProjectV2(input:{projectId:\"fixture\"}){clientMutationId} }"); XCTFail("Demo must reject GraphQL writes too") }
+        catch GitHubError.http(let status, _) { XCTAssertEqual(status, 403) }
+        let read = try await session.graphql("query { viewer { login } }")
+        XCTAssertEqual(read, .object([:]))
+    }
     func testFileEditorEncodesUnicodeAndPreservesConflictSHA() throws {
         let value = JSON.object(["content": .string(Data("Hello 🌱".utf8).base64EncodedString()), "sha": .string("expected")])
         let editor = EditorDefinition.file(repo: "sample/project", branch: "main", path: "readme.md", content: value)

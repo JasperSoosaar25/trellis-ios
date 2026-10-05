@@ -13,8 +13,9 @@
 - First simulator/archive run failed on a demo JSON raw-string delimiter; corrected.
 - Swift syntax parsing passes on Windows (no iOS compilation attempted).
 - Initial implementation passed full integration on Xcode 27 / iOS 27 simulator.
-- Current: validate final privacy/accessibility changes and screenshot corrections,
-  then publish a verified beta IPA through the tag workflow.
+- Current: beta integration verified; validate final confirmation/demo regressions
+  and publish through the gated tag workflow. Current main status is available in
+  [Actions](https://github.com/JasperSoosaar25/trellis-ios/actions/workflows/build-ios.yml?query=branch%3Amain).
 - Follow-up run: [37353819991](https://github.com/JasperSoosaar25/trellis-ios/actions/runs/37353819991), conclusion **success** (queried with gh run view).
 - Added README, row-by-row actual coverage, release notes and bundled license notices.
 - Windows package now has 16 passing tests, including mutation invalidation and
@@ -34,7 +35,13 @@ Green integration: [37353819991](https://github.com/JasperSoosaar25/trellis-ios/
 for aa86333: 14 macOS package tests, 3 app unit tests, 2 UI tests, simulator screenshots,
 Release archive and IPA verification passed. Bundle dev.trellis.client, minimum
 iOS 26.0, families 1/2, arm64, no provisioning profile or extension; 5.74 MiB IPA.
-Final changes still require their own green run before tagging. No Release published yet.
+Follow-up integration: [37357009903](https://github.com/JasperSoosaar25/trellis-ios/actions/runs/37357009903)
+for 5ff3056, conclusion **success**, queried with gh run view. All 17 macOS package
+tests, 3 app unit tests and 3 UI tests passed. Dark and accessibility-size screenshots
+were inspected; repository/Actions navigation controls no longer overlap the banner.
+The IPA also has no embedded signing entitlements and includes bundled license notices.
+Release distribution is through the gated tag workflow; published artifacts appear
+on [Releases](https://github.com/JasperSoosaar25/trellis-ios/releases).
 
 Final resource audit: 17 Windows package tests pass, including loading 40 persisted
 pages without exceeding the 32 MiB memory budget. Cache restores now share eviction
@@ -42,3 +49,10 @@ rules with writes. Apple API responses stop at 16 MiB while reading into memory;
 OAuth response tokens never go through a temporary download file. Large Actions logs
 stream to disk and read only a 2 MiB tail. An empty notification baseline correctly
 allows the first later notification, and recent IDs take priority in the bound.
+
+Final confirmation/demo regressions add a unit check for REST and GraphQL write
+rejection, and a UI check that opens and cancels comment deletion. Matching creation,
+file and comparison browser routes are reachable from their toolbars. Windows tests
+passed all 17 again at 21:45 local. Coverage: 27 native, 42 partial, 5 browser, 3
+excluded rows. See FEATURES.md for precise beta gaps, and NEEDS_FROM_USER.md for
+installation, authentication and actual-device verification.

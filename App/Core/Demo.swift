@@ -9,6 +9,7 @@ enum Demo {
     static let notifications = json(###"[{"id":"401","unread":true,"reason":"mention","subject":{"title":"Improve accessibility in the file browser","type":"Issue","url":"https://api.github.com/repos/river-demo/garden-notes/issues/24"},"repository":{"full_name":"river-demo/garden-notes"}},{"id":"402","unread":true,"reason":"review_requested","subject":{"title":"Polish the search experience","type":"PullRequest","url":"https://api.github.com/repos/river-demo/weather-station/pulls/18"},"repository":{"full_name":"river-demo/weather-station"}}]"###)
     static let workflows = json(###"{"workflows":[{"id":501,"name":"Build and test","path":".github/workflows/build.yml","state":"active"},{"id":502,"name":"Deploy preview","path":".github/workflows/deploy.yml","state":"active"}]}"###)
     static let runs = json(###"{"workflow_runs":[{"id":601,"name":"Build and test","display_title":"Improve accessibility in the file browser","status":"completed","conclusion":"success","run_number":42,"head_branch":"main"},{"id":602,"name":"Build and test","display_title":"Polish the search experience","status":"in_progress","run_number":41,"head_branch":"feature/search"}]}"###)
+    static let comments = json(###"[{"id":701,"body":"Thanks for checking. The next update improves readability.","user":{"login":"river-demo"}}]"###)
     static var contributions: JSON {
         .object(["totalContributions": .number(348), "weeks": .array((0..<18).map { week in
             .object(["contributionDays": .array((0..<7).map { day in .object(["date": .string("Demo day \(week * 7 + day + 1)"), "contributionCount": .number(Double((week * 11 + day * 7) % 6))]) })])
@@ -20,6 +21,7 @@ enum Demo {
         if path.contains("/search/issues") { return .object(["items": issues]) }
         if path.contains("/workflows") { return workflows }
         if path.contains("/actions/runs") { return runs }
+        if path.contains("/issues/") && path.contains("/comments") { return comments }
         if path.contains("/issues/") { return issues[0] }
         if path.contains("/issues") { return issues }
         if path.contains("/readme") { return .object(["content": .string(Data("# Garden Notes\n\nA small place for ideas to grow.\n\n## Getting started\n\nPlant an idea. Make a branch. Share what you learn.\n\n| Area | Status |\n| --- | --- |\n| Accessibility | Growing |\n| Search | Ready |".utf8).base64EncodedString())]) }

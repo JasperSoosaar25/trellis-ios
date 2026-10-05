@@ -2,6 +2,10 @@ Trellis is an unofficial native iOS client for GitHub. This initial beta include
 Device Flow/PAT authentication, repositories and code editing, issues/PR reviews,
 Actions administration, inbox polling, extended REST/GraphQL resources and App Shortcuts.
 
+Coverage: 27 native, 42 partial, 5 browser and 3 excluded feature rows, detailed in
+docs/FEATURES.md. This beta includes native Sponsors records and supported billing
+reports. Advanced operations and unsupported platforms retain embedded browser links.
+
 Requires iOS 26 or later. `Trellis.ipa` is unsigned: import it into KravaSign and
 re-sign with your certificate. Verify the accompanying SHA-256 before installation.
 
