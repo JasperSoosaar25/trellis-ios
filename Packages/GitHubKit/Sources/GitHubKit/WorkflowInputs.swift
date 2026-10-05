@@ -65,7 +65,7 @@ public struct WorkflowDefinition: Sendable, Equatable {
                 else if !value.isEmpty { advanced = true }
             default: advanced = true
             }
-            if ["|", ">", "|-", ">-"].contains(value) { advanced = true }
+            if ["|", ">", "|-", ">-"].contains(value) || value.contains("${{") || value.contains("\\") { advanced = true }
         }
         if let current { inputs.append(current) }
         return WorkflowDefinition(inputs: inputs, supportsDispatch: supported, needsAdvancedEditor: advanced)

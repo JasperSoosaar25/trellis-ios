@@ -16,6 +16,7 @@ import GitHubKit
     var pollInterval: TimeInterval = 60
     var contributions: JSON = .null
     var contributionError: String?
+    var showingOfflineData = false
 
     init() {
         if ProcessInfo.processInfo.arguments.contains("--demo") {
@@ -51,6 +52,8 @@ import GitHubKit
     func logout() async {
         await client?.clearCache(); Keychain.delete(); client = nil; profile = .null
         isDemo = false; contributions = .null; grantedScopes = nil; unreadCount = 0
+        showingOfflineData = false; contributionError = nil
+        for key in ["seenNotifications", "nextNotificationPoll", "pollInterval"] { UserDefaults.standard.removeObject(forKey: key) }
         BackgroundRefresh.cancel()
     }
     func request(_ path: String, method: String = "GET", body: JSON? = nil, accept: String = "application/vnd.github+json", cache: Bool = true) async throws -> APIResponse {
@@ -60,6 +63,7 @@ import GitHubKit
         }
         guard let client else { throw GitHubError.unauthorized }
         let response = try await client.request(path, method: method, body: body, accept: accept, useCache: cache)
+        showingOfflineData = response.isOffline
         grantedScopes = await client.scopes ?? grantedScopes; pollInterval = await client.pollInterval
         return response
     }
@@ -68,7 +72,10 @@ import GitHubKit
         guard let client else { throw GitHubError.unauthorized }
         return try await client.graphql(query, variables: variables)
     }
-    func browse(_ path: String) { webRoute = WebRoute(path: path) }
+    func browse(_ path: String) {
+        guard let route = WebRoute(path: path) else { error = "This page does not have a valid secure web address."; return }
+        webRoute = route
+    }
     func loadContributions() async {
         guard !isDemo else { return }
         do {
@@ -81,5 +88,8 @@ import GitHubKit
 struct WebRoute: Identifiable {
     let id = UUID()
     let url: URL
-    init(path: String) { url = URL(string: path.hasPrefix("https://") ? path : "https://github.com" + path)! }
+    init?(path: String) {
+        guard let target = URL(string: path.hasPrefix("https://") ? path : "https://github.com" + (path.hasPrefix("/") ? path : "/" + path)), target.scheme == "https", target.host != nil, target.user == nil, target.password == nil else { return nil }
+        url = target
+    }
 }

@@ -116,6 +116,7 @@ struct ActionMenu: View {
     @State private var selection: APIAction?
     @State private var result: String?
     @State private var busy = false
+    @State private var registration: RegistrationToken?
     var body: some View {
         Menu {
             ForEach(actions) { action in Button(action.title, role: action.destructive ? .destructive : nil) { selection = action } }
@@ -125,14 +126,30 @@ struct ActionMenu: View {
             Button("Cancel", role: .cancel) { selection = nil }
         } message: { Text("This changes the selected resource on GitHub.") }
         .alert("Result", isPresented: Binding(get: { result != nil }, set: { if !$0 { result = nil } })) { Button("OK") { result = nil } } message: { Text(result ?? "") }
+        .sheet(item: $registration) { token in RegistrationTokenView(value: token).onDisappear { registration = nil } }
     }
     private func perform(_ action: APIAction) async {
         busy = true; selection = nil; defer { busy = false }
         do {
             let response = try await session.request(action.path, method: action.method, body: action.body, cache: false)
-            if !response.json["token"].string.isEmpty { result = "Registration token (expires \(response.json["expires_at"].string)):\n\(response.json["token"].string)" }
+            if !response.json["token"].string.isEmpty { registration = RegistrationToken(token: response.json["token"].string, expires: response.json["expires_at"].string) }
             else { result = "\(action.title) completed." }
             onSuccess()
         } catch { result = error.localizedDescription }
+    }
+}
+
+struct RegistrationToken: Identifiable { let id = UUID(); let token: String; let expires: String }
+struct RegistrationTokenView: View {
+    let value: RegistrationToken
+    @Environment(\.dismiss) private var dismiss
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("Temporary registration token") { Text(value.token).font(.body.monospaced()).textSelection(.enabled); LabeledContent("Expires", value: value.expires) }
+                Button("Copy token", systemImage: "doc.on.doc") { UIPasteboard.general.setItems([[UIPasteboard.typeAutomatic: value.token]], options: [.localOnly: true, .expirationDate: Date().addingTimeInterval(60)]) }
+                Text("Use this token on the runner host. It is not saved by Trellis.").font(.footnote).foregroundStyle(.secondary)
+            }.navigationTitle("Register a runner").toolbar { Button("Done") { dismiss() } }
+        }
     }
 }

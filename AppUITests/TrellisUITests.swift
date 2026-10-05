@@ -27,6 +27,12 @@ import XCTest
         XCTAssertTrue(app.textFields["OAuth client ID"].exists)
         capture("00-login")
     }
+    func testDarkAndAccessibleTextScreens() {
+        let app = XCUIApplication(); app.launchArguments = ["--demo", "--dark"]; app.launch()
+        XCTAssertTrue(app.navigationBars["Home"].waitForExistence(timeout: 15)); capture("08-dark-home")
+        app.terminate(); app.launchArguments = ["--demo", "--large-text"]; app.launch()
+        XCTAssertTrue(app.navigationBars["Home"].waitForExistence(timeout: 15)); capture("09-accessibility-home")
+    }
     private func capture(_ name: String) {
         let attachment = XCTAttachment(screenshot: XCUIScreen.main.screenshot()); attachment.name = name; attachment.lifetime = .keepAlways; add(attachment)
     }

@@ -17,11 +17,23 @@ public struct HTTPTransport: Sendable {
     public let send: @Sendable (URLRequest) async throws -> HTTPResponse
     public init(send: @escaping @Sendable (URLRequest) async throws -> HTTPResponse) { self.send = send }
     public static let live = HTTPTransport { request in
-        let (data, response) = try await URLSession.shared.data(for: request)
+        let session = URLSession(configuration: .ephemeral, delegate: SecureRedirects(), delegateQueue: nil)
+        defer { session.finishTasksAndInvalidate() }
+        let (data, response) = try await session.data(for: request)
         guard let http = response as? HTTPURLResponse else { throw GitHubError.malformedResponse }
         var headers: [String: String] = [:]
         for (key, value) in http.allHeaderFields { headers[String(describing: key)] = String(describing: value) }
         return HTTPResponse(data: data, status: http.statusCode, headers: headers)
+    }
+}
+
+private final class SecureRedirects: NSObject, URLSessionTaskDelegate, @unchecked Sendable {
+    func urlSession(_ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse,
+                    newRequest request: URLRequest, completionHandler: @escaping @Sendable (URLRequest?) -> Void) {
+        guard request.url?.scheme == "https" else { completionHandler(nil); return }
+        var next = request
+        if request.url?.host != response.url?.host { next.setValue(nil, forHTTPHeaderField: "Authorization") }
+        completionHandler(next)
     }
 }
 
@@ -54,6 +66,6 @@ public enum URLCoding {
     public static func path(_ value: String) -> String { value.split(separator: "/", omittingEmptySubsequences: false).map { segment(String($0)) }.joined(separator: "/") }
     public static func query(_ items: [String: String]) -> String {
         var c = URLComponents(); c.queryItems = items.sorted { $0.key < $1.key }.map { URLQueryItem(name: $0.key, value: $0.value) }
-        return c.percentEncodedQuery ?? ""
+        return (c.percentEncodedQuery ?? "").replacingOccurrences(of: "+", with: "%2B")
     }
 }

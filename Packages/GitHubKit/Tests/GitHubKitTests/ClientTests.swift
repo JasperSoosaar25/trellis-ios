@@ -40,7 +40,7 @@ func response(_ source: String, status: Int = 200, headers: [String: String] = [
     await #expect(throws: GitHubError.invalidURL) { try await client.request("https://api.github.com.evil.example/steal") }
 }
 
-@Test func offlineCacheIsExplicitAndClearedAfterMutation() async throws {
+@Test func offlineCacheIsExplicitAndCanBeCleared() async throws {
     let stub = Stub([response("{\"name\":\"demo\"}"), response("", status: 204)])
     let client = GitHubClient(token: "test-value", transport: await stub.transport)
     _ = try await client.request("/user")
@@ -49,6 +49,26 @@ func response(_ source: String, status: Int = 200, headers: [String: String] = [
     #expect(cached.isOffline)
     await client.clearCache()
     await #expect(throws: URLError.self) { try await client.request("/user") }
+}
+
+@Test func successfulMutationInvalidatesCachedResourceBodies() async throws {
+    let stub = Stub([response("{\"name\":\"old\"}"), response("{\"name\":\"new\"}")])
+    let client = GitHubClient(token: "test-value", transport: await stub.transport)
+    _ = try await client.request("/repos/demo/project")
+    _ = try await client.request("/repos/demo/project", method: "PATCH", body: .object(["name": .string("new")]))
+    await stub.setOffline()
+    await #expect(throws: URLError.self) { try await client.request("/repos/demo/project") }
+}
+
+@Test func separateAccountDirectoriesNeverReturnEachOthersPrivateCache() async throws {
+    let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+    defer { try? FileManager.default.removeItem(at: root) }
+    let firstStub = Stub([response("{\"private\":true,\"name\":\"private-project\"}")])
+    let first = GitHubClient(token: "first-test-value", transport: await firstStub.transport, cacheDirectory: root.appendingPathComponent("first"))
+    _ = try await first.request("/user/repos")
+    let secondStub = Stub([]); await secondStub.setOffline()
+    let second = GitHubClient(token: "second-test-value", transport: await secondStub.transport, cacheDirectory: root.appendingPathComponent("second"))
+    await #expect(throws: URLError.self) { try await second.request("/user/repos") }
 }
 
 @Test func permissionAndRateLimitErrorsAreDistinct() async throws {

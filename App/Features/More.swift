@@ -56,6 +56,7 @@ struct SettingsView: View {
                 Text("Unofficial. Not affiliated with or endorsed by GitHub.")
                 Text("System appearance follows Liquid Glass, Dark Mode, text size and accessibility settings.").font(.footnote).foregroundStyle(.secondary)
                 Button("Source & feature coverage", systemImage: "safari") { session.browse("https://github.com/JasperSoosaar25/trellis-ios") }
+                NavigationLink("Acknowledgments") { AcknowledgmentsView() }
             }
             Button("Sign out", role: .destructive) { logout = true }
         }.navigationTitle("Settings")
@@ -64,6 +65,15 @@ struct SettingsView: View {
                 else { BackgroundRefresh.cancel() }
             }
             .confirmationDialog("Sign out of Trellis?", isPresented: $logout, titleVisibility: .visible) { Button("Sign out", role: .destructive) { Task { await session.logout() } } } message: { Text("Your saved API token and cached API data will be removed. Browser login is separate.") }
+    }
+}
+
+struct AcknowledgmentsView: View {
+    var body: some View {
+        ScrollView {
+            Text((Bundle.main.url(forResource: "ThirdPartyNotices", withExtension: "txt").flatMap { try? String(contentsOf: $0, encoding: .utf8) }) ?? "Dependency licenses are included with the source repository.")
+                .font(.footnote).textSelection(.enabled).frame(maxWidth: .infinity, alignment: .leading).padding()
+        }.navigationTitle("Acknowledgments")
     }
 }
 

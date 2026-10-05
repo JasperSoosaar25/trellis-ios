@@ -66,6 +66,7 @@ actor WaitRecorder {
 
 @Test func complexWorkflowYAMLIsNotSilentlyMisrepresented() {
     #expect(WorkflowDefinition.parse("on:\n  workflow_dispatch: {inputs: {a: {type: string}}}").needsAdvancedEditor)
+    #expect(WorkflowDefinition.parse("on:\n  workflow_dispatch:\n    inputs:\n      a:\n        default: ${{ github.ref }}").needsAdvancedEditor)
 }
 
 @Test func diffPositionsRemainCorrectAcrossMultipleHunks() {
@@ -86,6 +87,7 @@ actor WaitRecorder {
     #expect(URLCoding.segment("feature/foo") == "feature%2Ffoo")
     #expect(URLCoding.path("dir/a b.swift") == "dir/a%20b.swift")
     #expect(URLCoding.query(["q": "a&b+c"]).contains("%26"))
+    #expect(URLCoding.query(["q": "a+b"]) == "q=a%2Bb")
     let json = JSON.object(["large": .number(9876543210), "null": .null, "array": .array([.bool(true)])])
     #expect((try? JSON.decode(json.encoded())) == json)
 }

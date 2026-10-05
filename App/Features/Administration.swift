@@ -31,15 +31,19 @@ struct AdminResourceView: View {
             if !loading && items.isEmpty && error == nil { ContentUnavailableView("No \(spec.title.lowercased())", systemImage: "tray") }
             ForEach(items) { item in
                 NavigationLink {
-                    List {
-                        ResourceDetailView(value: item.value, webPath: spec.web)
+                    ResourceDetailView(value: item.value, webPath: spec.web)
+                    .toolbar {
                         if let method = spec.editMethod, !spec.fields.isEmpty { Button("Edit") { editor = definition(method: method, item: item.value) } }
                         if spec.canDelete { ActionMenu(title: "Delete", actions: [APIAction(title: "Delete \(ResourceRow(value: item.value).title)", path: itemPath(item.value), method: "DELETE", destructive: true)], onSuccess: { Task { await load() } }) }
+                    }
+                    .safeAreaInset(edge: .bottom) {
                         if spec.title == "Environments" {
+                            VStack(spacing: 12) {
                             NavigationLink { SecretList(root: itemPath(item.value) + "/secrets", webPath: spec.web) } label: { Text("Environment secrets") }
                             NavigationLink { AdminResourceView(spec: .environmentVariables(itemPath(item.value), web: spec.web)) } label: { Text("Environment variables") }
+                            }.padding().frame(maxWidth: .infinity).background(.background)
                         }
-                    }.navigationTitle(ResourceRow(value: item.value).title).navigationBarTitleDisplayMode(.inline)
+                    }
                 } label: { ResourceRow(value: item.value) }
             }
             if next != nil { Button("Load more") { Task { await load(more: true) } } }

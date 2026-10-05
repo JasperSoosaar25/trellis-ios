@@ -64,7 +64,7 @@ struct SearchView: View {
         VStack(spacing: 0) {
             Picker("Search for", selection: $category) { Text("Repositories").tag("repositories"); Text("Issues & PRs").tag("issues"); Text("Code").tag("code"); Text("People").tag("users") }.pickerStyle(.segmented).padding()
             if submitted.isEmpty { ContentUnavailableView("Find your next branch", systemImage: "magnifyingglass", description: Text("Search repositories, issues, pull requests, code, or people. GitHub search qualifiers are supported.")) }
-            else { ResourceList(title: "Results", path: "/search/\(category)?" + URLCoding.query(["q": submitted, "per_page": "50"]), key: "items", kind: category == "repositories" ? .repository : category == "issues" ? .issue("") : .generic, webPath: "/search?" + URLCoding.query(["q": submitted, "type": category])) }
+            else { ResourceList(title: "Results", path: "/search/\(category)?" + URLCoding.query(["q": submitted, "per_page": "50"]), key: "items", kind: category == "repositories" ? .repository : category == "issues" ? .issue("") : .generic, webPath: "/search?" + URLCoding.query(["q": submitted, "type": category]), allowsFilter: false) }
         }.navigationTitle("Search").searchable(text: $query, prompt: "Search GitHub").onSubmit(of: .search) { submitted = query.trimmingCharacters(in: .whitespacesAndNewlines) }
     }
 }

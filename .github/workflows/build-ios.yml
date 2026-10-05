@@ -24,6 +24,9 @@ jobs:
       GH_CLIENT_ID: ${{ vars.GH_CLIENT_ID }}
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          fetch-depth: 0
+          persist-credentials: false
       - name: Select Xcode
         run: |
           if [[ '${{ inputs.runner }}' == 'macos-26' ]]; then
@@ -34,6 +37,8 @@ jobs:
           xcodebuild -version
       - name: Install project generator
         run: brew install xcodegen
+      - name: Audit source and history
+        run: python3 scripts/audit-repository.py
       - name: Test, screenshot, archive and verify
         run: bash scripts/build-ios.sh
       - name: Upload unsigned app

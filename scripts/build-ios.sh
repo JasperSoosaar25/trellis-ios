@@ -18,6 +18,7 @@ xcrun xcresulttool export attachments --path build/Tests.xcresult --output-path 
 # Include a dark appearance capture independently of UI-test attachments.
 xcrun simctl ui "$DEVICE" appearance dark
 xcrun simctl launch "$DEVICE" dev.trellis.client --demo
+sleep 2
 xcrun simctl io "$DEVICE" screenshot build/screenshots/08-dark.png
 archive() { xcodebuild archive -project Trellis.xcodeproj -scheme Trellis -configuration Release -destination 'generic/platform=iOS' -archivePath build/Trellis.xcarchive "${BUILD_SETTINGS[@]}" > build/archive.log 2>&1; }
 if ! archive; then

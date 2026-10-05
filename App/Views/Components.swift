@@ -4,7 +4,20 @@ import Textual
 
 struct MarkdownView: View {
     let text: String
-    var body: some View { StructuredText(markdown: text).textual.textSelection(.enabled).frame(maxWidth: .infinity, alignment: .leading) }
+    var body: some View { StructuredText(markdown: taskListText).textual.textSelection(.enabled).frame(maxWidth: .infinity, alignment: .leading) }
+    private var taskListText: String {
+        // Foundation's Markdown parser has no interactive task-list control. Preserve
+        // read-only GFM task state with explicit glyphs while leaving fenced code alone.
+        var fenced = false
+        return text.components(separatedBy: .newlines).map { line in
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+            if trimmed.hasPrefix("```") || trimmed.hasPrefix("~~~") { fenced.toggle(); return line }
+            guard !fenced else { return line }
+            if trimmed.hasPrefix("- [x] ") || trimmed.hasPrefix("- [X] ") { return line.replacingOccurrences(of: "- [x] ", with: "- ☑ ").replacingOccurrences(of: "- [X] ", with: "- ☑ ") }
+            if trimmed.hasPrefix("- [ ] ") { return line.replacingOccurrences(of: "- [ ] ", with: "- ☐ ") }
+            return line
+        }.joined(separator: "\n")
+    }
 }
 
 struct ResourceRow: View {
@@ -49,6 +62,7 @@ struct DemoBanner: View {
     @Environment(Session.self) private var session
     var body: some View {
         if session.isDemo { Label("Demo · sample data", systemImage: "leaf").font(.caption).foregroundStyle(.secondary).frame(maxWidth: .infinity).padding(6).background(.background) }
+        else if session.showingOfflineData { Label("Offline · showing saved data", systemImage: "wifi.slash").font(.caption).foregroundStyle(.secondary).frame(maxWidth: .infinity).padding(6).background(.background) }
     }
 }
 
@@ -56,7 +70,7 @@ struct ContributionView: View {
     @Environment(Session.self) private var session
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("\(session.contributions["totalContributions"].int) contributions").font(.headline)
+            Text(session.contributions.isNull ? "Contribution activity" : "\(session.contributions["totalContributions"].int) contributions").font(.headline)
             if session.contributions.isNull {
                 if let error = session.contributionError { Text(error).font(.caption).foregroundStyle(.secondary) }
                 Button("Load contribution activity") { Task { await session.loadContributions() } }

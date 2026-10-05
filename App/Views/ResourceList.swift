@@ -12,6 +12,7 @@ struct ResourceList: View {
     var kind: ResourceKind = .generic
     var webPath: String? = nil
     var editor: EditorDefinition? = nil
+    var allowsFilter = true
     @Environment(Session.self) private var session
     @State private var items: [ResourceItem] = []
     @State private var loading = true
@@ -20,6 +21,7 @@ struct ResourceList: View {
     @State private var offline = false
     @State private var query = ""
     @State private var presentedEditor: EditorDefinition?
+    @State private var preparing = false
     var body: some View {
         Group {
             if loading && items.isEmpty { ProgressView("Loading \(title.lowercased())…") }
@@ -28,7 +30,8 @@ struct ResourceList: View {
                 List {
                     if offline { Label("Offline · showing saved data", systemImage: "wifi.slash").foregroundStyle(.secondary) }
                     if let error { Text(error).foregroundStyle(.red) }
-                    if items.isEmpty { ContentUnavailableView("No \(title.lowercased())", systemImage: "tray", description: Text("Items will appear here when available.")) }
+                    if preparing { Text("GitHub is preparing these statistics. Try again shortly.").foregroundStyle(.secondary); Button("Refresh statistics") { Task { await load() } } }
+                    else if items.isEmpty { ContentUnavailableView("No \(title.lowercased())", systemImage: "tray", description: Text("Items will appear here when available.")) }
                     ForEach(filtered) { item in
                         NavigationLink { ResourceDestination(value: item.value, kind: kind, webPath: webPath) } label: { ResourceRow(value: item.value) }
                     }
@@ -37,7 +40,7 @@ struct ResourceList: View {
             }
         }
         .navigationTitle(title)
-        .searchable(text: $query, prompt: "Filter this list")
+        .modifier(ResourceFilter(query: $query, enabled: allowsFilter))
         .toolbar {
             if let editor { Button("Create", systemImage: "plus") { presentedEditor = editor } }
             if let webPath { Button("Open in browser", systemImage: "safari") { session.browse(webPath) } }
@@ -51,6 +54,7 @@ struct ResourceList: View {
         defer { loading = false }
         do {
             let response = try await session.request(more ? next?.absoluteString ?? path : path)
+            preparing = response.status == 202
             let value = key.isEmpty ? response.json : response.json.at(key)
             let array = value.array
             if !value.isNull && array.isEmpty && !value.object.isEmpty { items = [ResourceItem(value)] }
@@ -60,6 +64,15 @@ struct ResourceList: View {
             }
             next = response.nextURL; offline = response.isOffline
         } catch is CancellationError { } catch { self.error = error.localizedDescription }
+    }
+}
+
+private struct ResourceFilter: ViewModifier {
+    @Binding var query: String
+    let enabled: Bool
+    @ViewBuilder func body(content: Content) -> some View {
+        if enabled { content.searchable(text: $query, prompt: "Filter this list") }
+        else { content }
     }
 }
 

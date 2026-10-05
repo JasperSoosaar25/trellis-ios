@@ -28,3 +28,13 @@
   They are explicitly labeled as demo and never substituted for live API responses.
 - Background refresh is opportunistic, not guaranteed; observe notification polling
   headers and do not promise APNs-like delivery.
+- All API/download sessions use HTTPS; cross-host redirects remove the Authorization
+  header. Downloads stream to temporary disk and are removed after sharing.
+- API statistics returning 202 are shown as preparing, not as final empty data.
+- Third-party licenses are bundled and accessible in Settings > Acknowledgments.
+- Initial CI used a raw-string delimiter that collided with Markdown headings in
+  demo JSON. Corrected the fixture delimiter; this is independent of live data.
+- Markdown task lists are rendered read-only with checked/unchecked glyphs. Editors
+  keep the original GFM source; code fences are excluded from glyph substitution.
+- Screenshot tests add explicit demo-only dark/large-text overrides. Real sessions
+  always follow system appearance and text size.
