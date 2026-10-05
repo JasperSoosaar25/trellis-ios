@@ -56,7 +56,7 @@ Every entry that is not ✅ states the gap explicitly.
 | M4 | Self-hosted runners | 🟡 | Native status/busy/list/remove and expiring registration tokens; pagination beyond first 100 uses web |
 | M4 | Runner labels/groups | 🟡 | Native labels and group configuration; repository/group membership graphical editing uses web |
 | M4 | Actions/workflow permissions | 🟡 | Native common settings; selected-actions/selected-org-repository policies use web |
-| M4 | Actions usage | 🌐 | Billing-platform differences; open account usage page |
+| M4 | Actions usage | 🟡 | Native organization usage by month on enhanced billing platform; personal Actions usage and unsupported billing plans use browser |
 | M4 | Workflow YAML creation/editing | ✅ | File editor and YAML-highlighted viewer |
 | M5 | Inbox/read and participation/reason filters | ✅ | Native list and filter controls; API poll interval observed |
 | M5 | Mark read/done/all read | ✅ | Native thread actions and all-read confirmation |
@@ -73,7 +73,7 @@ Every entry that is not ✅ states the gap explicitly.
 | M6 | Insights | 🟡 | Native traffic/clones/referrers/contributors data; pulse and charts use web; pending statistics not final data |
 | M6 | Organizations/teams | 🟡 | Native repos/members/teams CRUD and Actions settings; team membership/repo management use org web pages |
 | M6 | Codespaces | ✅ | Native list/start/stop/delete with quota warning on start |
-| M6 | Sponsors | 🌐 | Payments/onboarding and sponsorship UI in browser |
+| M6 | Sponsors | 🟡 | Native paged sponsorship list, status and tier; payments, changes and onboarding use browser |
 | M6 | SSH/GPG/signing public keys | ✅ | Native list/add/delete; private keys never stored |
 | M6 | Personal token management | 🌐 | PAT creation and arbitrary token administration need GitHub settings |
 | M6 | Copilot administration | 🟡 | Native seat list; requires additional billing/admin permissions; settings link for complete controls |

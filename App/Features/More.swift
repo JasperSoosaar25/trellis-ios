@@ -18,10 +18,10 @@ struct MoreView: View {
                 NavigationLink { AdminResourceView(spec: .gpgKeys) } label: { Label("GPG keys", systemImage: "signature") }
                 NavigationLink { AdminResourceView(spec: .sshSigningKeys) } label: { Label("SSH signing keys", systemImage: "checkmark.seal") }
                 Button("Personal access tokens", systemImage: "lock.shield") { session.browse("/settings/tokens") }
-                Button("Sponsors", systemImage: "heart") { session.browse("/sponsors") }
+                NavigationLink { SponsorsView() } label: { Label("Sponsors", systemImage: "heart") }
                 Button("Copilot chat & agent sessions", systemImage: "bubble.left.and.bubble.right") { session.browse("/copilot") }
                 Button("Marketplace", systemImage: "storefront") { session.browse("/marketplace") }
-                Button("Billing & usage", systemImage: "chart.bar") { session.browse("/settings/billing") }
+                NavigationLink { BillingUsageView(account: session.login, organization: false) } label: { Label("Billing & usage", systemImage: "chart.bar") }
                 Button("All account settings", systemImage: "person.crop.circle") { session.browse("/settings/profile") }
             }
             Section { NavigationLink { SettingsView() } label: { Label("Trellis settings", systemImage: "gearshape") } }
@@ -107,6 +107,7 @@ struct OrganizationView: View {
             NavigationLink { PackagesView(owner: org, organization: true) } label: { Text("Packages") }
             NavigationLink { ActionsAdministration(root: "/orgs/\(org)/actions", webPath: "/organizations/\(org)/settings/actions") } label: { Text("Organization Actions settings") }
             NavigationLink { ResourceList(title: "Copilot seats", path: "/orgs/\(org)/copilot/billing/seats?per_page=100", key: "seats", webPath: "/organizations/\(org)/settings/copilot") } label: { Text("Copilot administration") }
+            NavigationLink { BillingUsageView(account: org, organization: true) } label: { Text("Billing & Actions usage") }
             Button("All organization settings") { session.browse("/organizations/\(org)/settings/profile") }
         }.navigationTitle(org)
     }

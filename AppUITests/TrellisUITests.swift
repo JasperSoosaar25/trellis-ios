@@ -12,6 +12,9 @@ import XCTest
         XCTAssertTrue(app.buttons["Actions"].waitForExistence(timeout: 10) || app.staticTexts["Actions"].exists)
         capture("03-repository")
         app.staticTexts["Actions"].tap()
+        XCTAssertTrue(app.navigationBars["Actions"].waitForExistence(timeout: 10))
+        let banner = app.staticTexts["statusBanner"]
+        if banner.exists { XCTAssertGreaterThanOrEqual(app.navigationBars["Actions"].frame.minY, banner.frame.maxY - 1, "Status banner must not cover navigation controls") }
         capture("04-actions")
         app.tabBars.buttons["Inbox"].tap()
         XCTAssertTrue(app.navigationBars["Inbox"].waitForExistence(timeout: 10))
@@ -34,6 +37,7 @@ import XCTest
         XCTAssertTrue(app.navigationBars["Home"].waitForExistence(timeout: 15)); capture("09-accessibility-home")
     }
     private func capture(_ name: String) {
+        RunLoop.current.run(until: Date().addingTimeInterval(0.5))
         let attachment = XCTAttachment(screenshot: XCUIScreen.main.screenshot()); attachment.name = name; attachment.lifetime = .keepAlways; add(attachment)
     }
 }

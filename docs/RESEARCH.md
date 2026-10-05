@@ -216,3 +216,12 @@ by CI rather than inferred solely from deployment targets.
 The [Swift Windows installation guide](https://www.swift.org/install/windows/)
 requires Visual Studio C++ tools and a Windows SDK as well as Swift. Winget selected
 Swift 6.4.0 at execution time, superseding the prompt's 6.3.x installation lead.
+
+Implementation follow-up: [billing usage](https://docs.github.com/en/rest/billing/usage)
+offers organization reports (including Actions) on the enhanced billing platform,
+with Administration read permission. User reports cover personally billed Copilot.
+Trellis reads organization usage and AI-credit/premium-request reports by month;
+unavailable plans and personal Actions usage retain website routes. Sponsors reads
+the viewer's paginated `sponsorshipsAsSponsor`, tier and status via the
+[public GraphQL schema](https://docs.github.com/en/graphql/reference), whose field
+names were checked by schema introspection. Payment changes remain browser actions.

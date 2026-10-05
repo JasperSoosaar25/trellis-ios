@@ -5,13 +5,16 @@ struct AppShell: View {
     @Environment(Session.self) private var session
     var body: some View {
         @Bindable var session = session
+        VStack(spacing: 0) {
+        DemoBanner()
         TabView(selection: $session.tab) {
             Tab("Home", systemImage: "house", value: 0) { NavigationStack { HomeView() } }
             Tab("Repositories", systemImage: "shippingbox", value: 1) { NavigationStack { ResourceList(title: "Repositories", path: "/user/repos?sort=updated&per_page=50", kind: .repository, webPath: "/\(session.login)?tab=repositories").toolbar { NavigationLink { CreateRepositoryView() } label: { Image(systemName: "plus").accessibilityLabel("Create repository") } } } }
             Tab("Inbox", systemImage: "tray", value: 2) { NavigationStack { InboxView() } }.badge(session.unreadCount)
             Tab("Search", systemImage: "magnifyingglass", value: 3, role: .search) { NavigationStack { SearchView() } }
             Tab("More", systemImage: "square.grid.2x2", value: 4) { NavigationStack { MoreView() } }
-        }.tabBarMinimizeBehavior(.onScrollDown).safeAreaInset(edge: .top, spacing: 0) { DemoBanner() }
+        }.tabBarMinimizeBehavior(.onScrollDown)
+        }
             .onReceive(NotificationCenter.default.publisher(for: .trellisShortcut)) { note in if let tab = note.object as? Int { session.tab = tab; UserDefaults.standard.removeObject(forKey: "shortcutTab") } }
             .onAppear { if let tab = UserDefaults.standard.object(forKey: "shortcutTab") as? Int { session.tab = tab; UserDefaults.standard.removeObject(forKey: "shortcutTab") } }
     }

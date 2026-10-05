@@ -14,7 +14,7 @@ struct ActionsView: View {
             NavigationLink { AdminResourceView(spec: .caches(repo)) } label: { Label("Caches", systemImage: "externaldrive") }
             NavigationLink { ArtifactList(repo: repo) } label: { Label("Artifacts", systemImage: "archivebox") }
             NavigationLink { FileView(repo: repo, branch: "HEAD", item: .object(["type": .string("dir"), "name": .string("Workflows"), "path": .string(".github/workflows")])) } label: { Label("Edit workflow files", systemImage: "doc.badge.gearshape") }
-            Button("Actions usage & billing", systemImage: "chart.bar") { session.browse("/settings/billing/usage") }
+            NavigationLink { BillingUsageView(account: String(repo.split(separator: "/").first ?? ""), organization: true) } label: { Label("Organization usage & billing", systemImage: "chart.bar") }
         }.navigationTitle("Actions")
     }
 }

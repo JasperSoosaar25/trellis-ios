@@ -16,7 +16,7 @@ tests and IPA structure; it does not verify your permissions or sideloader certi
 | M3 | Issue/PR filters, comments/reactions, metadata, diffs/inline comments, reviews/checks/merge |
 | M4 | Actions runs/jobs/logs/control, typed dispatch, artifact sharing, caches, encrypted secrets, variables, environments, runners/settings |
 | M5 | Native inbox, read/done/subscription actions, optional background polling and local notifications |
-| M6 | Releases, packages, Projects v2, Discussions, gists, security alerts, insights, organizations/teams, Codespaces, public keys |
+| M6 | Releases, packages, Projects v2, Discussions, gists, security alerts, insights, organizations/teams, Codespaces, Sponsors records, billing reports, public keys |
 | M7 | Inbox/repository App Shortcuts, system accessibility controls and bounded API cache |
 
 Widgets, APNs and GitHub Mobile's sign-in approvals are excluded. Wiki, Sponsors

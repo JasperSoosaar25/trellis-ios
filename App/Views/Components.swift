@@ -25,12 +25,14 @@ struct ResourceRow: View {
     var title: String {
         [value["full_name"].string, value["title"].string, value["display_title"].string, value["name"].string,
          value.at("subject.title").string, value["login"].string, value["filename"].string,
-         value.at("commit.message").string, value["key"].string, value["sha"].string].first { !$0.isEmpty } ?? "Item \(value["id"].string)"
+         value.at("commit.message").string, value["sku"].string, value["product"].string,
+         value["key"].string, value["sha"].string].first { !$0.isEmpty } ?? "Item \(value["id"].string)"
     }
     var subtitle: String {
         [value["description"].string, value.at("repository.full_name").string, value["reason"].string,
          value["state"].string, value["status"].string, value["language"].string,
-         value.at("user.login").string].filter { !$0.isEmpty }.prefix(2).joined(separator: " · ")
+         value.at("user.login").string, value["date"].string,
+         value["quantity"].isNull ? "" : "\(value["quantity"].string) \(value["unitType"].string)"].filter { !$0.isEmpty }.prefix(2).joined(separator: " · ")
     }
     var body: some View {
         VStack(alignment: .leading, spacing: 5) {
@@ -61,8 +63,8 @@ struct FailureView: View {
 struct DemoBanner: View {
     @Environment(Session.self) private var session
     var body: some View {
-        if session.isDemo { Label("Demo · sample data", systemImage: "leaf").font(.caption).foregroundStyle(.secondary).frame(maxWidth: .infinity).padding(6).background(.background) }
-        else if session.showingOfflineData { Label("Offline · showing saved data", systemImage: "wifi.slash").font(.caption).foregroundStyle(.secondary).frame(maxWidth: .infinity).padding(6).background(.background) }
+        if session.isDemo { Label("Demo · sample data", systemImage: "leaf").font(.caption).foregroundStyle(.secondary).frame(maxWidth: .infinity).padding(6).background(.background).accessibilityIdentifier("statusBanner") }
+        else if session.showingOfflineData { Label("Offline · showing saved data", systemImage: "wifi.slash").font(.caption).foregroundStyle(.secondary).frame(maxWidth: .infinity).padding(6).background(.background).accessibilityIdentifier("statusBanner") }
     }
 }
 

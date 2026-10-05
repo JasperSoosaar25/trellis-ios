@@ -38,3 +38,10 @@
   keep the original GFM source; code fences are excluded from glyph substitution.
 - Screenshot tests add explicit demo-only dark/large-text overrides. Real sessions
   always follow system appearance and text size.
+- Screenshot inspection found the status banner could cover navigation controls.
+  Place it in the shell's vertical layout outside the TabView, with a UI assertion.
+- Native billing reports cover supported organization products and personal Copilot;
+  billing checkout and unsupported report plans use matching browser pages.
+- Sponsors exposes native paged sponsorship records. Payment changes stay in browser.
+- IPA verification also checks embedded Mach-O signature slots for entitlements;
+  a linker-generated ad-hoc signature is compatible with subsequent re-signing.
